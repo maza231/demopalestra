@@ -1,7 +1,11 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import Image from "next/image";
+
+// useLayoutEffect lato client, useEffect lato server (evita warning in SSR)
+const useIsoLayoutEffect =
+  typeof window !== "undefined" ? useLayoutEffect : useEffect;
 
 type GallerySliderProps = {
   images: readonly string[];
@@ -19,7 +23,7 @@ type GallerySliderProps = {
  */
 export default function GallerySlider({
   images,
-  autoplayMs = 4000,
+  autoplayMs = 3000,
 }: GallerySliderProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const trackRef = useRef<HTMLDivElement>(null);
@@ -33,6 +37,14 @@ export default function GallerySlider({
   const [offset, setOffset] = useState(0);
   const [animate, setAnimate] = useState(true);
   const [paused, setPaused] = useState(false);
+  const resumeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Mette in pausa l'autoplay e lo fa ripartire dopo un po' (utile su touch)
+  const pauseThenResume = useCallback((delay = 2500) => {
+    setPaused(true);
+    if (resumeTimer.current) clearTimeout(resumeTimer.current);
+    resumeTimer.current = setTimeout(() => setPaused(false), delay);
+  }, []);
 
   // Indice logico (0..count-1) dell'immagine centrata
   const logical = ((pos % count) + count) % count;
@@ -47,7 +59,8 @@ export default function GallerySlider({
     setOffset(slide.offsetLeft - (container.clientWidth - slide.clientWidth) / 2);
   }, [pos]);
 
-  useEffect(() => {
+  // Aggiorna l'offset prima del repaint: lo "snap" del loop resta invisibile
+  useIsoLayoutEffect(() => {
     recalc();
   }, [recalc]);
 
@@ -102,19 +115,26 @@ export default function GallerySlider({
     return () => clearInterval(id);
   }, [paused, count, autoplayMs, move]);
 
+  // Pulizia del timer di ripresa
+  useEffect(() => {
+    return () => {
+      if (resumeTimer.current) clearTimeout(resumeTimer.current);
+    };
+  }, []);
+
   return (
     <div
       className="relative"
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
-      onTouchStart={() => setPaused(true)}
+      onTouchStart={() => pauseThenResume()}
     >
       {/* Viewport */}
       <div ref={containerRef} className="overflow-hidden">
         <div
           ref={trackRef}
           onTransitionEnd={handleTransitionEnd}
-          className={`flex items-center gap-4 ease-out sm:gap-6 ${
+          className={`flex items-center gap-4 ease-out [will-change:transform] sm:gap-6 ${
             animate ? "transition-transform duration-700" : ""
           }`}
           style={{ transform: `translateX(${-offset}px)` }}
@@ -128,7 +148,7 @@ export default function GallerySlider({
                 onClick={() => goTo(i % count)}
                 aria-label={`Vai all'immagine ${(i % count) + 1}`}
                 tabIndex={i >= count && i < count * 2 ? 0 : -1}
-                className={`relative aspect-[16/10] w-[82%] flex-shrink-0 overflow-hidden rounded-2xl transition-all duration-700 ease-out sm:aspect-[16/9] sm:w-[60%] lg:w-[52%] ${
+                className={`relative aspect-[16/10] w-[82%] flex-shrink-0 overflow-hidden rounded-2xl transition-[transform,opacity] duration-700 ease-out [will-change:transform] sm:aspect-[16/9] sm:w-[60%] lg:w-[52%] ${
                   isActive ? "scale-100 opacity-100 shadow-xl" : "scale-90 opacity-70"
                 }`}
               >
@@ -151,28 +171,6 @@ export default function GallerySlider({
           })}
         </div>
       </div>
-
-      {/* Frecce */}
-      <button
-        type="button"
-        onClick={() => move(-1)}
-        aria-label="Immagine precedente"
-        className="absolute left-3 top-1/2 z-10 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-ink shadow-md transition hover:bg-white sm:left-6"
-      >
-        <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
-          <path d="M15 18l-6-6 6-6" />
-        </svg>
-      </button>
-      <button
-        type="button"
-        onClick={() => move(1)}
-        aria-label="Immagine successiva"
-        className="absolute right-3 top-1/2 z-10 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-ink shadow-md transition hover:bg-white sm:right-6"
-      >
-        <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
-          <path d="M9 18l6-6-6-6" />
-        </svg>
-      </button>
 
       {/* Pallini */}
       <div className="mt-6 flex justify-center gap-2">
