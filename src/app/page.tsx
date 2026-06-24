@@ -1,4 +1,3 @@
-import Image from "next/image";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import FloatingWhatsApp from "@/components/FloatingWhatsApp";
@@ -10,6 +9,7 @@ import ServiceCard from "@/components/ServiceCard";
 import PricingCard from "@/components/PricingCard";
 import TestimonialCard from "@/components/TestimonialCard";
 import TrainerCard from "@/components/TrainerCard";
+import GallerySlider from "@/components/GallerySlider";
 import CTAButton from "@/components/CTAButton";
 import {
   features,
@@ -90,22 +90,7 @@ export default function Home() {
             eyebrow="La palestra"
             title="Dai un'occhiata ai nostri spazi"
           />
-          <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3">
-            {gallery.map((src, i) => (
-              <div
-                key={src}
-                className="relative aspect-square overflow-hidden rounded-xl"
-              >
-                <Image
-                  src={src}
-                  alt={`Foto della palestra ${i + 1}`}
-                  fill
-                  sizes="(max-width: 1024px) 50vw, 33vw"
-                  className="object-cover transition duration-500 hover:scale-105"
-                />
-              </div>
-            ))}
-          </div>
+          <GallerySlider images={gallery} />
         </Section>
 
         {/* Testimonianze */}
