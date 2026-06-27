@@ -7,7 +7,7 @@
 
 export const site = {
   // --- Identità ---
-  name: "Palestra Manuel",
+  name: "palestra fit",
   tagline: "La tua forza, ogni giorno",
   city: "Città",
 
