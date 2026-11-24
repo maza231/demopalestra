@@ -7,9 +7,9 @@
 
 export const site = {
   // --- Identità ---
-  name: "palestra fit",
+  name: "demo palestra",
   tagline: "La tua forza, ogni giorno",
-  city: "Città",
+  city: "Città demo",
 
   // --- Contatti ---
   // Telefono in formato leggibile (mostrato a schermo)
@@ -19,10 +19,10 @@ export const site = {
   // Messaggio precompilato quando si apre WhatsApp
   whatsappMessage:
     "Ciao! Ho visto il sito e vorrei informazioni sugli abbonamenti.",
-  email: "info@nomepalestra.it",
+  email: "demo@demo.demo",
 
   // --- Sede ---
-  address: "Via Esempio 1, 00000 Città (PR)",
+  address: "Via demo 1, 00000 demo (demo)",
   // Link Google Maps per "Indicazioni" / "Vieni a trovarci"
   mapsUrl: "https://www.google.com/maps/search/?api=1&query=palestra",
   // URL embed della mappa (sostituisci con quello reale da Google Maps > Condividi > Incorpora)
